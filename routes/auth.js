@@ -20,13 +20,19 @@ router.post('/login', async (req, res) => {
       { expiresIn: '1h' }
     );
 
+    // Optionally set cookie (if you want to support both cookie and header-based auth)
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 3600000,
     });
 
-    res.json({ message: 'Login successful', user: { email: user.email, role: user.role } });
+    // Include token in response body
+    res.json({
+      message: 'Login successful',
+      token, // Add token here
+      user: { email: user.email, role: user.role },
+    });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error' });

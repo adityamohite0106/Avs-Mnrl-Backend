@@ -19,11 +19,12 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ Updated CORS Configuration
+// Updated CORS Configuration
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
-  'https://avs-mnrl-frontend.vercel.app'
+  'http://localhost:5174', // Add this
+  'https://avs-mnrl-frontend.vercel.app',
 ];
 
 app.use(cors({
@@ -38,6 +39,8 @@ app.use(cors({
     return callback(null, true);
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Explicitly allow methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allow Authorization header
 }));
 
 // Connect to DB
@@ -49,10 +52,6 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/records', recordsRoutes);
 app.use('/api/stats', statsRoutes);
 
-
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-
-// added cors properties to this 

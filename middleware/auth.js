@@ -2,18 +2,15 @@ const jwt = require('jsonwebtoken');
 
 const auth = async (req, res, next) => {
   try {
-    // ✅ Get token from Authorization header instead of cookies
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-
+    const token = authHeader && authHeader.split(' ')[1];
     if (!token) {
       console.error('No token provided');
       return res.status(401).json({ message: 'No token, authorization denied' });
     }
-
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     console.log('Decoded JWT:', decoded);
-    req.user = decoded; // Sets req.user.userId and req.user.role
+    req.user = decoded;
     next();
   } catch (error) {
     console.error('Auth middleware error:', error.message);
