@@ -1,8 +1,8 @@
 const express = require('express');
-const dotenv = require('dotenv'); // ✅ Load .env first
+const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
-const connectDB = require('./config/db'); // ✅ Import DB connection function
+const connectDB = require('./config/db');
 
 // Routes
 const authRoutes = require('./routes/auth');
@@ -11,20 +11,37 @@ const recordsRoutes = require('./routes/records');
 const statsRoutes = require('./routes/stats');
 
 // Load environment variables
-dotenv.config(); // ✅ Load .env variables before using process.env
+dotenv.config();
 
 const app = express();
 
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
+
+// ✅ Updated CORS Configuration
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://avs-mnrl-frontend.vercel.app'
+];
+
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   credentials: true,
 }));
 
 // Connect to DB
-connectDB(); // ✅ This calls the async function to connect
+connectDB();
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -35,3 +52,6 @@ app.use('/api/stats', statsRoutes);
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+// added cors properties to this 
