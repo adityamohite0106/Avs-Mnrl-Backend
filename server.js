@@ -1,57 +1,66 @@
 const express = require('express');
-const dotenv = require('dotenv');
-const cookieParser = require('cookie-parser');
-const cors = require('cors');
-const connectDB = require('./config/db');
+const router = express.Router();
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+const { auth } = require('../middleware/auth');
 
-// Routes
-const authRoutes = require('./routes/auth');
-const uploadRoutes = require('./routes/upload');
-const recordsRoutes = require('./routes/records');
-const statsRoutes = require('./routes/stats');
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: 'Invalid credentials' });
 
-// Load environment variables
-dotenv.config();
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
-const app = express();
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' } // Changed to 7 days
+    );
 
-// Middleware
-app.use(express.json());
-app.use(cookieParser());
+    // ✅ CRITICAL FIX: Return token in response body
+    res.json({ 
+      message: 'Login successful',
+      token,  // ← ADD THIS LINE!
+      user: { 
+        id: user._id,  // ← Also add id
+        email: user.email, 
+        role: user.role 
+      } 
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
-// ✅ Updated CORS Configuration
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:3000',
-  'https://avs-mnrl-frontend.vercel.app'
-];
+router.post('/logout', auth, (req, res) => {
+  try {
+    // ✅ With Bearer token auth, logout is handled client-side
+    res.json({ message: 'Logout successful' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
-  credentials: true,
-}));
+router.get('/me', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select('email role');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ 
+      user: { 
+        id: user._id,  // ← Add id here too
+        email: user.email, 
+        role: user.role 
+      } 
+    });
+  } catch (error) {
+    console.error('GetMe error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
-// Connect to DB
-connectDB();
-
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/upload', uploadRoutes);
-app.use('/api/records', recordsRoutes);
-app.use('/api/stats', statsRoutes);
-
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-
-// added cors properties to this 
+module.exports = router;
