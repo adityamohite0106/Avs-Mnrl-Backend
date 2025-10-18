@@ -20,17 +20,9 @@ router.post('/login', async (req, res) => {
       { expiresIn: '1h' }
     );
 
-    // Optionally set cookie (if you want to support both cookie and header-based auth)
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 3600000,
-    });
-
-    // Include token in response body
     res.json({
       message: 'Login successful',
-      token, // Add token here
+      token,
       user: { email: user.email, role: user.role },
     });
   } catch (error) {
@@ -41,10 +33,6 @@ router.post('/login', async (req, res) => {
 
 router.post('/logout', auth, (req, res) => {
   try {
-    res.clearCookie('token', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-    });
     res.json({ message: 'Logout successful' });
   } catch (error) {
     console.error('Logout error:', error);
@@ -63,4 +51,4 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
-module.exports = router; // Ensure router is exported
+module.exports = router;
