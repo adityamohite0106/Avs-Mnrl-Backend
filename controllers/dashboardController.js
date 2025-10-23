@@ -4,15 +4,18 @@ const ActivityLog = require('../models/ActivityLog');
 const getStats = async (req, res) => {
   try {
     const totalRecords = await MatchedRecord.countDocuments();
-    const reportedCount = await MatchedRecord.countDocuments({ status: 'reported' });
-    const suspectedCount = await MatchedRecord.countDocuments({ status: 'suspected' });
+    const reportedCount = await MatchedRecord.countDocuments({ status: 'Reported' });
+    const suspectedCount = await MatchedRecord.countDocuments({ status: 'Suspected' });
+    const spamCount = await MatchedRecord.countDocuments({ status: 'Spam' });
 
     res.json({
       totalRecords,
       reportedCount,
       suspectedCount,
+      spamCount,
     });
   } catch (error) {
+    console.error('Error fetching stats:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

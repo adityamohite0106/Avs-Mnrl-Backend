@@ -1,3 +1,4 @@
+// routes/records.js
 const express = require('express');
 const router = express.Router();
 const BankUpload = require('../models/BankUpload');
@@ -8,9 +9,9 @@ router.get('/bank-list', auth, async (req, res) => {
   try {
     const uploads = await BankUpload.find({ uploadedBy: req.user.userId })
       .populate('uploadedBy', 'email')
-      .sort({ uploadedAt: -1 });
+      .sort({ createdAt: -1 });
     console.log(`Bank uploads fetched for user ${req.user.userId}:`, uploads.length);
-    res.json(uploads); // Fixed typo
+    res.json(uploads);
   } catch (error) {
     console.error('Error fetching bank uploads:', error);
     res.status(500).json({ message: 'Error fetching bank uploads' });
@@ -19,16 +20,7 @@ router.get('/bank-list', auth, async (req, res) => {
 
 router.get('/fraud-list', auth, async (req, res) => {
   try {
-    const uploadIds = await BankUpload.find({ uploadedBy: req.user.userId }).distinct('_id');
-    if (!uploadIds.length) {
-      console.log('No uploads found for user:', req.user.userId);
-      return res.json([]);
-    }
-    console.log(`Fraud-list upload IDs for user ${req.user.userId}:`, uploadIds);
-    const records = await MatchedRecord.find({
-      status: 'Fraud',
-      uploadId: { $in: uploadIds },
-    })
+    const records = await MatchedRecord.find({ status: 'Fraud' })
       .populate('uploadId', 'filename')
       .sort({ createdAt: -1 });
     console.log(`Fraud records fetched:`, records.length, records.map(r => r.status));
@@ -41,19 +33,11 @@ router.get('/fraud-list', auth, async (req, res) => {
 
 router.get('/suspected-list', auth, async (req, res) => {
   try {
-    const uploadIds = await BankUpload.find({ uploadedBy: req.user.userId }).distinct('_id');
-    if (!uploadIds.length) {
-      console.log('No uploads found for user:', req.user.userId);
-      return res.json([]);
-    }
-    console.log(`Suspected-list upload IDs for user ${req.user.userId}:`, uploadIds);
-    const records = await MatchedRecord.find({
-      status: 'Suspected',
-      uploadId: { $in: uploadIds },
-    })
+    console.log('Fetching suspected list for user:', req.user);
+    const records = await MatchedRecord.find({ status: 'Suspected' })
       .populate('uploadId', 'filename')
       .sort({ createdAt: -1 });
-    console.log(`Suspected records fetched:`, records.length, records.map(r => r.status));
+    console.log('Fetched suspected records count:', records.length);
     res.json(records);
   } catch (error) {
     console.error('Error fetching suspected list:', error);
@@ -63,19 +47,11 @@ router.get('/suspected-list', auth, async (req, res) => {
 
 router.get('/reported-list', auth, async (req, res) => {
   try {
-    const uploadIds = await BankUpload.find({ uploadedBy: req.user.userId }).distinct('_id');
-    if (!uploadIds.length) {
-      console.log('No uploads found for user:', req.user.userId);
-      return res.json([]);
-    }
-    console.log(`Reported-list upload IDs for user ${req.user.userId}:`, uploadIds);
-    const records = await MatchedRecord.find({
-      status: 'Reported',
-      uploadId: { $in: uploadIds },
-    })
+    console.log('Fetching reported list for user:', req.user);
+    const records = await MatchedRecord.find({ status: 'Reported' })
       .populate('uploadId', 'filename')
       .sort({ createdAt: -1 });
-    console.log(`Reported records fetched:`, records.length, records.map(r => r.status));
+    console.log('Fetched reported records count:', records.length);
     res.json(records);
   } catch (error) {
     console.error('Error fetching reported list:', error);
@@ -85,19 +61,11 @@ router.get('/reported-list', auth, async (req, res) => {
 
 router.get('/spam-list', auth, async (req, res) => {
   try {
-    const uploadIds = await BankUpload.find({ uploadedBy: req.user.userId }).distinct('_id');
-    if (!uploadIds.length) {
-      console.log('No uploads found for user:', req.user.userId);
-      return res.json([]);
-    }
-    console.log(`Spam-list upload IDs for user ${req.user.userId}:`, uploadIds);
-    const records = await MatchedRecord.find({
-      status: 'Spam',
-      uploadId: { $in: uploadIds },
-    })
+    console.log('Fetching spam list for user:', req.user);
+    const records = await MatchedRecord.find({ status: 'Spam' })
       .populate('uploadId', 'filename')
       .sort({ createdAt: -1 });
-    console.log(`Spam records fetched:`, records.length, records.map(r => r.status));
+    console.log('Fetched spam records count:', records.length);
     res.json(records);
   } catch (error) {
     console.error('Error fetching spam list:', error);

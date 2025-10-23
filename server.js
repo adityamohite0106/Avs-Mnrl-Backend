@@ -51,6 +51,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/records', recordsRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/bank-records', require('./routes/bankRecords'));
+
 
 // Start server
 const PORT = process.env.PORT || 5000;
