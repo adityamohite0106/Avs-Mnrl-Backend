@@ -20,10 +20,15 @@ router.get('/bank-list', auth, async (req, res) => {
 
 router.get('/fraud-list', auth, async (req, res) => {
   try {
-    const records = await MatchedRecord.find({ status: 'Fraud' })
+    // For admin users, show all fraud records. For regular users, show only their uploaded records
+    const query = req.user.role === 'admin' 
+      ? { status: 'Fraud' }
+      : { status: 'Fraud', uploadedBy: req.user.userId };
+    
+    const records = await MatchedRecord.find(query)
       .populate('uploadId', 'filename')
       .sort({ createdAt: -1 });
-    console.log(`Fraud records fetched:`, records.length, records.map(r => r.status));
+    console.log(`Fraud records fetched for user ${req.user.userId} (role: ${req.user.role}):`, records.length);
     res.json(records);
   } catch (error) {
     console.error('Error fetching fraud list:', error);
@@ -34,10 +39,15 @@ router.get('/fraud-list', auth, async (req, res) => {
 router.get('/suspected-list', auth, async (req, res) => {
   try {
     console.log('Fetching suspected list for user:', req.user);
-    const records = await MatchedRecord.find({ status: 'Suspected' })
+    // For admin users, show all suspected records. For regular users, show only their uploaded records
+    const query = req.user.role === 'admin' 
+      ? { status: 'Suspected' }
+      : { status: 'Suspected', uploadedBy: req.user.userId };
+    
+    const records = await MatchedRecord.find(query)
       .populate('uploadId', 'filename')
       .sort({ createdAt: -1 });
-    console.log('Fetched suspected records count:', records.length);
+    console.log(`Fetched suspected records count for user ${req.user.userId} (role: ${req.user.role}):`, records.length);
     res.json(records);
   } catch (error) {
     console.error('Error fetching suspected list:', error);
@@ -48,10 +58,15 @@ router.get('/suspected-list', auth, async (req, res) => {
 router.get('/reported-list', auth, async (req, res) => {
   try {
     console.log('Fetching reported list for user:', req.user);
-    const records = await MatchedRecord.find({ status: 'Reported' })
+    // For admin users, show all reported records. For regular users, show only their uploaded records
+    const query = req.user.role === 'admin' 
+      ? { status: 'Reported' }
+      : { status: 'Reported', uploadedBy: req.user.userId };
+    
+    const records = await MatchedRecord.find(query)
       .populate('uploadId', 'filename')
       .sort({ createdAt: -1 });
-    console.log('Fetched reported records count:', records.length);
+    console.log(`Fetched reported records count for user ${req.user.userId} (role: ${req.user.role}):`, records.length);
     res.json(records);
   } catch (error) {
     console.error('Error fetching reported list:', error);
@@ -62,10 +77,15 @@ router.get('/reported-list', auth, async (req, res) => {
 router.get('/spam-list', auth, async (req, res) => {
   try {
     console.log('Fetching spam list for user:', req.user);
-    const records = await MatchedRecord.find({ status: 'Spam' })
+    // For admin users, show all spam records. For regular users, show only their uploaded records
+    const query = req.user.role === 'admin' 
+      ? { status: 'Spam' }
+      : { status: 'Spam', uploadedBy: req.user.userId };
+    
+    const records = await MatchedRecord.find(query)
       .populate('uploadId', 'filename')
       .sort({ createdAt: -1 });
-    console.log('Fetched spam records count:', records.length);
+    console.log(`Fetched spam records count for user ${req.user.userId} (role: ${req.user.role}):`, records.length);
     res.json(records);
   } catch (error) {
     console.error('Error fetching spam list:', error);
